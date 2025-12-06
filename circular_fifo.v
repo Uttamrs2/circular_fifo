@@ -43,7 +43,8 @@ module fifo_mem(
         .data_out(data_out), 
         .data_in(data_in), 
         .clk(clk), 
-        .fifo_we(fifo_we), 
+        .fifo_we(fifo_we),
+        .fifo_rd(fifo_rd),
         .wptr(wptr), 
         .rptr(rptr)
     );
@@ -71,11 +72,12 @@ module memory_array(
     data_in,
     clk,
     fifo_we,
+    fifo_rd,
     wptr,
     rptr
 );  
     input [7:0] data_in;
-    input clk, fifo_we;
+    input clk, fifo_we,fifo_rd;
     input [4:0] wptr, rptr;
     output [7:0] data_out;
 
@@ -85,8 +87,7 @@ module memory_array(
         if (fifo_we)   
             data_out2[wptr[3:0]] <= data_in;
     end  
-
-    assign data_out = data_out2[rptr[3:0]];  
+    assign data_out = fifo_rd ? data_out2[rptr[3:0]] : 8'b0;
 endmodule
 
 module read_pointer(
@@ -190,3 +191,4 @@ module write_pointer(
             wptr <= wptr + 5'b00001;
     end  
 endmodule
+
