@@ -157,7 +157,7 @@ module status_signal(
             fifo_overflow <= 0;
         else if (overflow_set && !fifo_rd)
             fifo_overflow <= 1;
-        else if (fifo_rd)
+        else if (overflow_set && fifo_rd)
             fifo_overflow <= 0;
     end
 
@@ -166,7 +166,7 @@ module status_signal(
             fifo_underflow <= 0;
         else if (underflow_set && !fifo_we)
             fifo_underflow <= 1;
-        else if (fifo_we)
+        else if (underflow_set && fifo_we)
             fifo_underflow <= 0;
     end
 endmodule
@@ -193,5 +193,6 @@ module write_pointer(
             wptr <= wptr + 5'b00001;
     end  
 endmodule
+
 
 
