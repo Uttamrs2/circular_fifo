@@ -141,14 +141,16 @@ module status_signal(
     assign fbit_comp = wptr[4] ^ rptr[4];
     assign pointer_equal = (wptr[3:0] == rptr[3:0]);
     assign pointer_result = wptr - rptr;
-    assign overflow_set = fifo_full & wr;
-    assign underflow_set = fifo_empty & rd;
+   
 
     always @(*) begin
         fifo_full = fbit_comp & pointer_equal;
         fifo_empty = (~fbit_comp) & pointer_equal;
         fifo_threshold = (pointer_result[4] || pointer_result[3]) ? 1 : 0;
     end
+
+    assign overflow_set = fifo_full & wr;
+    assign underflow_set = fifo_empty & rd;
 
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n)
@@ -191,4 +193,5 @@ module write_pointer(
             wptr <= wptr + 5'b00001;
     end  
 endmodule
+
 
