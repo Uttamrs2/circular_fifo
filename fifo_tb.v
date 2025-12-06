@@ -1,107 +1,74 @@
-`timescale 1ns / 1ps 
+`timescale 1ns / 1ps
 
-`define DELAY 10  
+module fifo_tb;
 
-module fifo_tb;  
-parameter ENDTIME = 40000;  
+reg clk;
+reg rst_n;
+reg wr;
+reg rd;
+reg [7:0] data_in;
 
-reg clk;                  
-reg rst_n;                
-reg wr;                   
-reg rd;                   
-reg [7:0] data_in;       
+wire [7:0] data_out;
+wire fifo_full;
+wire fifo_empty;
+wire fifo_threshold;
+wire fifo_overflow;
+wire fifo_underflow;
 
-wire [7:0] data_out;     
-wire fifo_empty;         
-wire fifo_full;          
-wire fifo_threshold;     
-wire fifo_overflow;      
-wire fifo_underflow;     
-integer i;               
 
-fifo_mem dut(/*AUTOARG*/  
-    data_out, fifo_full, fifo_empty, fifo_threshold, fifo_overflow,   
-    fifo_underflow,   
-    clk, rst_n, wr, rd, data_in  
-);  
+fifo_mem dut (
+    .data_out(data_out),
+    .fifo_full(fifo_full),
+    .fifo_empty(fifo_empty),
+    .fifo_threshold(fifo_threshold),
+    .fifo_overflow(fifo_overflow),
+    .fifo_underflow(fifo_underflow),
+    .clk(clk),
+    .rst_n(rst_n),
+    .wr(wr),
+    .rd(rd),
+    .data_in(data_in)
+);
 
-initial begin  
-    clk = 1'b0;  
-    rst_n = 1'b0;  
-    wr = 1'b0;  
-    rd = 1'b0;  
-    data_in = 8'd0;  
-end  
 
-initial begin  
-    main;  
-end  
+initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+end
 
-task main;  
-    fork  
-        clock_generator;   
-        reset_generator;   
-        operation_process; 
-        debug_fifo;        
-        endsimulation;     
-    join  
-endtask  
 
-task clock_generator;  
-    begin  
-        forever #`DELAY clk = !clk;  
-    end  
-endtask  
+initial begin
+    rst_n   = 0;
+    wr      = 0;
+    rd      = 0;
+    data_in = 0;
 
-task reset_generator;  
-    begin  
-        #(`DELAY * 2)      
-        rst_n = 1'b1;      
-        #7.9  
-        rst_n = 1'b0;      
-        #7.09  
-        rst_n = 1'b1;      
-    end  
-endtask  
+  
+    $monitor("T=%0t | wr=%b rd=%b data_in=%h data_out=%h | full=%b empty=%b thresh=%b ovf=%b udf=%b",
+              $time, wr, rd, data_in, data_out,
+              fifo_full, fifo_empty, fifo_threshold,
+              fifo_overflow, fifo_underflow);
 
-task operation_process;  
-    begin  
-        for (i = 0; i < 17; i = i + 1) begin: WRE  
-            #(`DELAY * 5)  
-            wr = 1'b1;      
-            data_in = data_in + 8'd1;  
-            #(`DELAY * 2)   
-            wr = 1'b0;      
-        end  
+    
+    #10 rst_n = 1;
 
-        #(`DELAY)  
-        for (i = 0; i < 17; i = i + 1) begin: RDE  
-            #(`DELAY * 2)   
-            rd = 1'b1;      
-            #(`DELAY * 2)   
-            rd = 1'b0;      
-        end  
-    end  
-endtask  
+    
+    #10;
+    repeat(17) begin         
+        #10 wr = 1;
+            data_in = data_in + 1;
+        #10 wr = 0;
+    end
 
-task debug_fifo;  
-    begin  
-        $display("----------------------------------------------");  
-        $display("------------------   -----------------------");  
-        $display("----------- SIMULATION RESULT ----------------");  
-        $display("--------------       -------------------");  
-        $display("----------------     ---------------------");  
-        $display("----------------------------------------------");  
-        $monitor("TIME = %d, wr = %b, rd = %b, data_in = %h", $time, wr, rd, data_in);  
-    end  
-endtask  
+   -
+    #20;
+    repeat(17) begin      
+        #10 rd = 1;
+        #10 rd = 0;
+    end
 
-task endsimulation;  
-    begin  
-        #ENDTIME  
-        $display("-------------- THE SIMULATION FINISHED ------------");  
-        $finish;  
-    end  
-endtask  
+  
+    #50 $finish;
+end
 
-endmodule  
+endmodule
